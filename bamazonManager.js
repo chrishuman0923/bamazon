@@ -38,12 +38,49 @@ function getMaxID() {
 
         //clear terminal and begin application
         clear();
-        showAllProducts();
+        showMenu();
     });
 }
 
-function showAllProducts() {
-    var query = 'SELECT item_id, product_name, price, quantity FROM products ORDER BY item_id;';
+function showMenu() {
+    inquirer.prompt([
+        {
+            name: 'action',
+            type: 'list',
+            message: 'What would you like to do?',
+            choices: ['View Products for Sale', 'View Low Inventory', 'Add to Inventory', 'Add New Product', 'Exit Application']
+        }
+    ]).then(function(answers) {
+        switch (answers.action) {
+            case 'View Products for Sale':
+                showProducts(false);
+                break;
+            case 'View Low Inventory':
+                showProducts(true);
+                break;
+            case 'Add to Inventory':
+                itemToAddInventory();
+                break;
+            case 'Add New Product':
+                break;
+            default:
+                clear();
+                closeApp('Goodbye!');
+        }
+    }).catch(function(err) {
+        closeApp('Error received: ' + err);
+    });
+}
+
+function showProducts(lowQuantityFlag) {
+    var query;
+
+    //determines which query to use
+    if (!lowQuantityFlag) {
+        query = 'SELECT item_id, product_name, price, quantity FROM products ORDER BY item_id;';
+    } else {
+        query = 'SELECT item_id, product_name, price, quantity FROM products WHERE quantity<=5 ORDER BY item_id;';
+    }
 
     //query db
     var syntax = connection.query(query, function(err, resp) {
@@ -71,27 +108,27 @@ function showAllProducts() {
             products.push(product);
         }
 
+        //clear terminal window
+        clear();
+
         //formats the consoled array to look like a table
         console.table(products);
 
-        //get user input on which item they want to buy
-        itemToBuyInput();
+        //back to menu
+        showMenu();
     });
 }
 
-function itemToBuyInput() {
+function itemToAddInventory() {
     //get user input
     inquirer.prompt([
         {
             name: 'id',
             type: 'input',
-            message: 'Which item would you like to purchase (Enter ID or q to exit)?',
+            message: 'Add inventory for which item (Enter ID)?',
             validate: function(input) {
                 //validation to determine if the id exists
-                if (input.trim().toLowerCase() === 'q') {
-                    clear();
-                    closeApp('Goodbye!');
-                } else if (!/^[1-9]+[0-9]*$/gi.test(input) || input > max_id) {
+                if (!/^[1-9]+[0-9]*$/gi.test(input) || input > max_id) {
                     console.log('\nPlease enter a valid ID.');
                     return false;
                 } else {
@@ -102,7 +139,7 @@ function itemToBuyInput() {
         {
             name: 'quantity',
             type: 'input',
-            message: 'Enter the quantity you would like to purchase?',
+            message: 'Enter the quantity you would like to add?',
             validate: function(input) {
                 if (!/^[1-9]+[0-9]*$/gi.test(input)) {
                     console.log('\nPlease enter a valid whole number.');
@@ -113,68 +150,9 @@ function itemToBuyInput() {
             }
         }
     ]).then(function(answers) {
-        checkInventory(answers);
+        console.log(answers);
     }).catch(function(err) {
         closeApp('Error received: ' + err);
-    });
-}
-
-function checkInventory(input) {
-    var query = 'SELECT quantity FROM products WHERE item_id=? LIMIT 1;',
-        id = parseInt(input.id),
-        quantity = parseInt(input.quantity);
-    
-    //query db
-    var syntax = connection.query(query, [id], function(err, resp) {
-        if (err) {
-            closeApp('Error from query ' + syntax.sql);
-        }
-
-        //is there enough inventory for what was requested
-        if (quantity > resp[0].quantity) {
-            //no...restart application so user can decide again
-            console.log('\nInsufficient quantity in stock!');
-
-            //provides slight delay in execution so user can see response
-            setTimeout(getMaxID, 2000);
-        } else {
-            purchaseItem(id, quantity);
-        }
-    });
-}
-
-function purchaseItem(id, quantity) {
-    var query = 'UPDATE products SET quantity=quantity-? WHERE item_id=?;';
-    
-    var syntax = connection.query(query, [quantity, id], function(err, resp) {
-        if (err) {
-            closeApp('Error from query ' + syntax.sql);
-        }
-
-        showTotalCost(id, quantity);
-    });
-}
-
-function showTotalCost(id, quantity) {
-    var query = 'SELECT price FROM products WHERE item_id=? LIMIT 1;',
-        totalCost = 0;
-
-    var syntax = connection.query(query, [id], function(err, resp) {
-        if (err) {
-            closeApp('Error from query ' + syntax.sql);
-        }
-
-        //get total cost and format as USD
-        totalCost = new Intl.NumberFormat('en-EN', {
-            style: 'currency',
-            currency: 'USD'
-        }).format(resp[0].price * quantity);
-
-        //display total cost message
-        console.log('\nYour total cost was $ ' + totalCost + '.');
-
-        //provides slight delay in execution so user can see response
-        setTimeout(getMaxID, 2000);
     });
 }
 
