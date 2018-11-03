@@ -30,7 +30,7 @@ function getMaxID() {
     //query db
     var syntax = connection.query(query, function(err, resp) {
         if (err) {
-            closeApp('Error from query ' + syntax.sql);
+            closeApp('Error from query ' + syntax.sql + ' -> ' + err);
         }
 
         //set client-side variable of the max id in the database
@@ -48,7 +48,7 @@ function showAllProducts() {
     //query db
     var syntax = connection.query(query, function(err, resp) {
         if (err) {
-            closeApp('Error from query ' + syntax.sql);
+            closeApp('Error from query ' + syntax.sql + ' -> ' + err);
         }
 
         //Create array to hold formatted products
@@ -85,7 +85,7 @@ function itemToBuyInput() {
         {
             name: 'id',
             type: 'input',
-            message: 'Which item would you like to purchase (Enter ID or q to exit)?',
+            message: 'Which item would you like to purchase (Enter ID or \'q\' to exit)?',
             validate: function(input) {
                 //validation to determine if the id exists
                 if (input.trim().toLowerCase() === 'q') {
@@ -127,7 +127,7 @@ function checkInventory(input) {
     //query db
     var syntax = connection.query(query, [id], function(err, resp) {
         if (err) {
-            closeApp('Error from query ' + syntax.sql);
+            closeApp('Error from query ' + syntax.sql + ' -> ' + err);
         }
 
         //is there enough inventory for what was requested
@@ -148,7 +148,7 @@ function purchaseItem(id, quantity) {
     
     var syntax = connection.query(query, [quantity, id], function(err, resp) {
         if (err) {
-            closeApp('Error from query ' + syntax.sql);
+            closeApp('Error from query ' + syntax.sql + ' -> ' + err);
         }
 
         showTotalCost(id, quantity);
@@ -161,7 +161,7 @@ function showTotalCost(id, quantity) {
 
     var syntax = connection.query(query, [id], function(err, resp) {
         if (err) {
-            closeApp('Error from query ' + syntax.sql);
+            closeApp('Error from query ' + syntax.sql + ' -> ' + err);
         }
 
         //get total cost and format as USD
