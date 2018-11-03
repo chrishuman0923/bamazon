@@ -169,6 +169,7 @@ function showTotalCost(id, quantity) {
 }
 
 function closeApp(msg) {
+    //log message, end db connection and close app
     console.log(msg);
     connection.end();
     process.exit();
