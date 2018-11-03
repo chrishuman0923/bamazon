@@ -9,7 +9,8 @@ var keys = require('./keys'),
         user: 'root',
         password: keys.mySQL.password,
         database: 'bamazon'
-    });
+    }),
+    max_id = 0;
 
 //Connect to DB
 connection.connect(function(err) {
@@ -45,6 +46,9 @@ function showAllProducts() {
 
             //Pushes product object to new array
             products.push(product);
+            
+            //Gets application side variable of maximum ID in DB
+            max_id = resp[i].item_id;
         }
 
         //formats the consoled array to look like a table
@@ -56,5 +60,35 @@ function showAllProducts() {
 }
 
 function itemToBuyInput() {
-
+    inquirer.prompt([
+        {
+            name: 'id',
+            type: 'input',
+            message: 'Which item would you like to purchase (Enter ID)?',
+            validate: function(input) {
+                //validation to determine if the id exists
+                if (!/^[1-9]+[0-9]*$$/gi.test(input) || input > max_id) {
+                    console.log('\nPlease enter a valid ID.');
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        },
+        {
+            name: 'quantity',
+            type: 'input',
+            message: 'Enter the quantity you would like to purchase?',
+            validate: function(input) {
+                if (!/^[1-9]+[0-9]*$/gi.test(input)) {
+                    console.log('\nPlease enter a valid whole number.');
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+    ]).then(function(answers) {
+        console.log(answers);
+    });
 }
