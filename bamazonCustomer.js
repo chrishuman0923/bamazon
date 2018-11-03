@@ -3,6 +3,7 @@ require('dotenv').config();
 var keys = require('./keys'),
     inquirer = require('inquirer'),
     cTable = require('console.table'),
+    clear = require('clear'),
     mySQL = require('mysql'),
     connection = mySQL.createConnection({
         host: 'localhost',
@@ -35,13 +36,14 @@ function getMaxID() {
         //set client-side variable of the max id in the database
         max_id = resp[0].max_id;
 
-        //begin application
+        //clear terminal and begin application
+        clear();
         showAllProducts();
     });
 }
 
 function showAllProducts() {
-    var query = 'SELECT item_id, product_name, price FROM products ORDER BY item_id;';
+    var query = 'SELECT item_id, product_name, price, quantity FROM products ORDER BY item_id;';
 
     //query db
     var syntax = connection.query(query, function(err, resp) {
@@ -58,7 +60,11 @@ function showAllProducts() {
             var product = {
                 ID: resp[i].item_id,
                 Name: resp[i].product_name,
-                Price: '$ ' + resp[i].price.toFixed(2) //formats decimal to 2 decimal places
+                Price: new Intl.NumberFormat('en-EN', {
+                    style: 'currency',
+                    currency: 'USD'
+                }).format(resp[i].price), //formats as currency
+                Quantity: resp[i].quantity
             };
 
             //Pushes product object to new array
@@ -83,7 +89,7 @@ function itemToBuyInput() {
             validate: function(input) {
                 //validation to determine if the id exists
                 if (input.trim().toLowerCase() === 'q') {
-                    closeApp('\nGoodbye!\n');
+                    closeApp('\nGoodbye!');
                 } else if (!/^[1-9]+[0-9]*$/gi.test(input) || input > max_id) {
                     console.log('\nPlease enter a valid ID.');
                     return false;
@@ -126,7 +132,7 @@ function checkInventory(input) {
         //is there enough inventory for what was requested
         if (quantity > resp[0].quantity) {
             //no...restart application so user can decide again
-            console.log('\nInsufficient quantity in stock!\n');
+            console.log('\nInsufficient quantity in stock!');
 
             //provides slight delay in execution so user can see response
             setTimeout(getMaxID, 2000);
@@ -157,11 +163,14 @@ function showTotalCost(id, quantity) {
             closeApp('Error from query ' + syntax.sql);
         }
 
-        //get total cost
-        totalCost = (resp[0].price * quantity).toFixed(2);
+        //get total cost and format as USD
+        totalCost = new Intl.NumberFormat('en-EN', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(resp[0].price * quantity);
 
         //display total cost message
-        console.log('\nYour total cost was $ ' + totalCost + '\n');
+        console.log('\nYour total cost was $ ' + totalCost + '.');
 
         //provides slight delay in execution so user can see response
         setTimeout(getMaxID, 2000);
