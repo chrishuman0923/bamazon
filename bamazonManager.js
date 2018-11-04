@@ -292,7 +292,7 @@ function addProduct(input) {
             );
 
             //provides slight delay in execution so user can see response
-            return setTimeout(getMaxID, 4000);
+            return setTimeout(getMaxID, 5000);
         }
         console.log('Product Added!');
 
