@@ -48,7 +48,10 @@ function showMenu() {
             name: 'action',
             type: 'list',
             message: 'What would you like to do?',
-            choices: ['View Products for Sale', 'View Low Inventory', 'Add to Inventory', 'Add New Product', 'Exit Application']
+            choices: [
+                'View Products for Sale', 'View Low Inventory',
+                'Add to Inventory', 'Add New Product', 'Exit Application'
+            ]
         }
     ]).then(function(answers) {
         //determine which options was selected and go to correct function
@@ -75,13 +78,18 @@ function showMenu() {
 }
 
 function showProducts(lowQuantityFlag) {
-    var query;
-
+    var query = [];
     //determines which query to use
     if (!lowQuantityFlag) {
-        query = 'SELECT item_id, product_name, price, quantity FROM products ORDER BY item_id;';
+        query = [
+            'SELECT item_id, product_name, price, quantity ',
+            'FROM products ORDER BY item_id;'
+        ].join('');
     } else {
-        query = 'SELECT item_id, product_name, price, quantity FROM products WHERE quantity<=5 ORDER BY item_id;';
+        query = [
+            'SELECT item_id, product_name, price, quantity ',
+            'FROM products WHERE quantity<=5 ORDER BY item_id;'
+        ].join('');
     }
 
     //query db
@@ -151,6 +159,7 @@ function itemToAddInventory() {
             type: 'input',
             message: 'Enter the quantity you would like to add?',
             validate: function(input) {
+                //Test for a positive integer
                 if (!/^[1-9]+[0-9]*$/gi.test(input)) {
                     console.log('\nPlease enter a valid whole number.');
                     return false;
@@ -184,7 +193,10 @@ function addInventory(input) {
 }
 
 function getDepartments() {
-    var query = 'SELECT department_name FROM products GROUP BY department_name ORDER BY department_name;';
+    var query = [
+        'SELECT department_name FROM products ',
+        'GROUP BY department_name ORDER BY department_name;'
+    ].join('');
 
     //query db
     var syntax = connection.query(query, function(err, resp) {
@@ -199,11 +211,11 @@ function getDepartments() {
             departments.push(resp[i].department_name.trim());
         }
 
-        addProduct(departments);
+        getNewProduct(departments);
     });
 }
 
-function addProduct(departments) {
+function getNewProduct(departments) {
     inquirer.prompt([
         {
             name: 'product',
@@ -221,6 +233,7 @@ function addProduct(departments) {
             type: 'input',
             message: 'Price?',
             validate: function(input) {
+                //Test for currency format
                 if (!/^[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{1,2})?$/gi.test(input)) {
                     console.log('\nPlease enter a valid positive USD amount.');
                     return false;
@@ -234,6 +247,7 @@ function addProduct(departments) {
             type: 'input',
             message: 'Initial Quantity?',
             validate: function(input) {
+                //Test for a positive integer
                 if (!/^[1-9]+[0-9]*$/gi.test(input)) {
                     console.log('\nPlease enter a valid whole number.');
                     return false;
@@ -243,9 +257,47 @@ function addProduct(departments) {
             }
         }
     ]).then(function(answers) {
-        console.log(answers);
+        addProduct(answers);
     }).catch(function(err) {
         closeApp('Error received: ' + err);
+    });
+}
+
+function addProduct(input) {
+    //query was written this way to prevent auto_increment PK
+    //from increasing after failed insert
+    var query = [
+            'INSERT INTO products (product_name, department_name, price, ',
+            'quantity) SELECT ?, ?, ?, ? WHERE NOT EXISTS ( SELECT * FROM',
+            ' products WHERE product_name=?);'
+        ].join(''),
+        data = [
+            input.product.trim(),
+            input.department,
+            parseFloat(input.price),
+            parseInt(input.quantity),
+            input.product.trim()
+        ];
+    
+    var syntax = connection.query(query, data, function(err, resp) {
+        if (err) {
+            closeApp('Error from query ' + syntax.sql + ' -> ' + err.code);
+        }
+
+        if (resp.affectedRows === 0) {
+            console.log(
+                'Product not added to database.',
+                'Most likely due to a unique key violation caused by a ' +
+                'duplicate product name.'
+            );
+
+            //provides slight delay in execution so user can see response
+            return setTimeout(getMaxID, 4000);
+        }
+        console.log('Product Added!');
+
+        //provides slight delay in execution so user can see response
+        setTimeout(getMaxID, 2000);
     });
 }
 
