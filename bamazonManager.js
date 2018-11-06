@@ -11,7 +11,8 @@ var keys = require('./keys'),
         password: keys.mySQL.password,
         database: 'bamazon'
     }),
-    max_id = 0;
+    max_id = 0,
+    depts = [];
 
 //Connect to DB
 connection.connect(function(err) {
@@ -50,7 +51,7 @@ function showMenu() {
             message: 'What would you like to do?',
             choices: [
                 'View Products for Sale', 'View Low Inventory',
-                'Add to Inventory', 'Add New Product', 'Exit Application'
+                'Add to Inventory', 'Add New Product', new inquirer.Separator(), 'Exit Application'
             ]
         }
     ]).then(function(answers) {
@@ -82,14 +83,14 @@ function showProducts(lowQuantityFlag) {
     //determines which query to use
     if (!lowQuantityFlag) {
         query = [
-            'SELECT item_id, product_name, price, quantity ',
+            'SELECT item_id, product_name, price, quantity',
             'FROM products ORDER BY item_id;'
-        ].join('');
+        ].join(' ');
     } else {
         query = [
-            'SELECT item_id, product_name, price, quantity ',
+            'SELECT item_id, product_name, price, quantity',
             'FROM products WHERE quantity<=5 ORDER BY item_id;'
-        ].join('');
+        ].join(' ');
     }
 
     //query db
@@ -194,9 +195,10 @@ function addInventory(input) {
 
 function getDepartments() {
     var query = [
-        'SELECT department_name FROM products ',
-        'GROUP BY department_name ORDER BY department_name;'
-    ].join('');
+        'SELECT departments.department_id, department_name FROM products',
+        'INNER JOIN departments ON products.department_id =',
+        'departments.department_id GROUP BY departments.department_id,','department_name ORDER BY department_name;'
+    ].join(' ');
 
     //query db
     var syntax = connection.query(query, function(err, resp) {
@@ -204,18 +206,23 @@ function getDepartments() {
             closeApp('Error from query ' + syntax.sql + ' -> ' + err);
         }
 
-        var departments = [];
+        depts = [];
 
         //Get department list
         for(var i=0; i < resp.length; i++) {
-            departments.push(resp[i].department_name.trim());
+            var dept = {
+                dept_id: resp[i].department_id,
+                dept_name: resp[i].department_name.trim()
+            };
+
+            depts.push(dept);
         }
 
-        getNewProduct(departments);
+        getNewProduct(depts);
     });
 }
 
-function getNewProduct(departments) {
+function getNewProduct() {
     inquirer.prompt([
         {
             name: 'product',
@@ -226,7 +233,15 @@ function getNewProduct(departments) {
             name: 'department',
             type: 'list',
             message: 'Department?',
-            choices: departments
+            choices: function() { //get department names from array of department objects
+                var deptNames = [];
+
+                for (var i = 0; i < depts.length; i++) {
+                    deptNames.push(depts[i].dept_name);
+                }
+    
+                return deptNames;
+            }
         },
         {
             name: 'price',
@@ -264,16 +279,23 @@ function getNewProduct(departments) {
 }
 
 function addProduct(input) {
+    //get dept id from dept name
+    var deptID = depts.filter(function(dept) {
+        if (dept.dept_name === input.department) {
+            return dept;
+        }
+    });
+
     //query was written this way to prevent auto_increment PK
     //from increasing after failed insert
     var query = [
-            'INSERT INTO products (product_name, department_name, price, ',
+            'INSERT INTO products (product_name, department_id, price,',
             'quantity) SELECT ?, ?, ?, ? WHERE NOT EXISTS ( SELECT * FROM',
-            ' products WHERE product_name=?);'
-        ].join(''),
+            'products WHERE product_name=?);'
+        ].join(' '),
         data = [
             input.product.trim(),
-            input.department,
+            deptID[0].dept_id,
             parseFloat(input.price),
             parseInt(input.quantity),
             input.product.trim()

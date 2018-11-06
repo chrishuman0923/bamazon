@@ -150,9 +150,9 @@ function purchaseItem(id, quantity) {
         if (err) {
             closeApp('Error from query ' + syntax.sql + ' -> ' + err);
         }
-
-        showTotalCost(id, quantity);
     });
+
+    showTotalCost(id, quantity);
 }
 
 function showTotalCost(id, quantity) {
@@ -164,17 +164,31 @@ function showTotalCost(id, quantity) {
             closeApp('Error from query ' + syntax.sql + ' -> ' + err);
         }
 
-        //get total cost and format as USD
-        totalCost = new Intl.NumberFormat('en-EN', {
-            style: 'currency',
-            currency: 'USD'
-        }).format(resp[0].price * quantity);
+        //get total cost
+        totalCost = resp[0].price * quantity;
 
-        //display total cost message
-        console.log('\nYour total cost was $ ' + totalCost + '.');
+        var innerQuery = [
+            'UPDATE products SET product_sales=product_sales+?',
+            'WHERE item_id=?'
+        ].join(' ');
 
-        //provides slight delay in execution so user can see response
-        setTimeout(getMaxID, 2000);
+        var innerSyntax = connection.query(innerQuery, [totalCost, id], function(err, resp) {
+            if (err) {
+                closeApp('Error from query ' + innerSyntax.sql + ' -> ' + err);
+            }
+
+            //get total cost and format as USD
+            totalCost = new Intl.NumberFormat('en-EN', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(totalCost);
+
+            //display total cost message
+            console.log('\nYour total cost was $ ' + totalCost + '.');
+
+            //provides slight delay in execution so user can see response
+            setTimeout(getMaxID, 2000);
+        });
     });
 }
 
