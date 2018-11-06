@@ -56,7 +56,7 @@ function showMenu() {
 
 function viewDeptStats() {
     var query = [
-            'SELECT departments.department_id, departments.department_name,overhead_cost',
+            'SELECT departments.department_id, departments.department_name,overhead_cost,',
             'IFNULL(SUM(product_sales),0) AS total_sales, IFNULL(SUM(product_sales),0)-overhead_cost',
             'AS total_profit FROM departments LEFT OUTER JOIN products ON', 'departments.department_id',
             '= products.department_id GROUP BY departments.department_id, departments.department_name,', 'departments.overhead_cost ORDER BY departments.department_id;'
