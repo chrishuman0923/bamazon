@@ -167,10 +167,7 @@ function showTotalCost(id, quantity) {
         //get total cost
         totalCost = resp[0].price * quantity;
 
-        var innerQuery = [
-            'UPDATE products SET product_sales=product_sales+?',
-            'WHERE item_id=?'
-        ].join(' ');
+        var innerQuery = 'UPDATE products SET product_sales=product_sales+? WHERE item_id=?';
 
         var innerSyntax = connection.query(innerQuery, [totalCost, id], function(err, resp) {
             if (err) {

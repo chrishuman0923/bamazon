@@ -32,7 +32,8 @@ function showMenu() {
             type: 'list',
             message: 'What would you like to do?',
             choices: [
-                'View Products Sales by Department', 'Create New Department', new inquirer.Separator(), 'Exit Application'
+                'View Products Sales by Department', 'Create New Department',
+                new inquirer.Separator(), 'Exit Application'
             ]
         }
     ]).then(function(answers) {
@@ -55,10 +56,10 @@ function showMenu() {
 
 function viewDeptStats() {
     var query = [
-            'SELECT departments.department_id, departments.department_name,',
-            'overhead_cost, IFNULL(SUM(product_sales),0) AS total_sales, IFNULL(SUM(product_sales),0) - overhead_cost',
-            'AS total_profit FROM departments LEFT OUTER JOIN products ON', 'departments.department_id = products.department_id GROUP BY',
-            'departments.department_id, departments.department_name,', 'departments.overhead_cost ORDER BY departments.department_id;'
+            'SELECT departments.department_id, departments.department_name,overhead_cost',
+            'IFNULL(SUM(product_sales),0) AS total_sales, IFNULL(SUM(product_sales),0)-overhead_cost',
+            'AS total_profit FROM departments LEFT OUTER JOIN products ON', 'departments.department_id',
+            '= products.department_id GROUP BY departments.department_id, departments.department_name,', 'departments.overhead_cost ORDER BY departments.department_id;'
         ].join(' ');
 
     //query db
@@ -76,10 +77,11 @@ function viewDeptStats() {
             var department = {
                 ID: resp[i].department_id,
                 Name: resp[i].department_name,
+                //formats as currency
                 'Overhead Cost': new Intl.NumberFormat('en-EN', {
                     style: 'currency',
                     currency: 'USD'
-                }).format(resp[i].overhead_cost), //formats as currency
+                }).format(resp[i].overhead_cost),
                 'Total Sales': new Intl.NumberFormat('en-EN', {
                     style: 'currency',
                     currency: 'USD'

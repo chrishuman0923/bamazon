@@ -51,7 +51,8 @@ function showMenu() {
             message: 'What would you like to do?',
             choices: [
                 'View Products for Sale', 'View Low Inventory',
-                'Add to Inventory', 'Add New Product', new inquirer.Separator(), 'Exit Application'
+                'Add to Inventory', 'Add New Product', new inquirer.Separator(),
+                'Exit Application'
             ]
         }
     ]).then(function(answers) {
@@ -288,9 +289,9 @@ function addProduct(input) {
     //query was written this way to prevent auto_increment PK
     //from increasing after failed insert
     var query = [
-            'INSERT INTO products (product_name, department_id, price,',
-            'quantity) SELECT ?, ?, ?, ? WHERE NOT EXISTS ( SELECT * FROM',
-            'products WHERE product_name=?);'
+            'INSERT INTO products (product_name, department_id, price, quantity)',
+            'SELECT ?, ?, ?, ? WHERE NOT EXISTS ( SELECT * FROM products',
+            'WHERE product_name=?);'
         ].join(' '),
         data = [
             input.product.trim(),
