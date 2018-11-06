@@ -32,14 +32,14 @@ function showMenu() {
             type: 'list',
             message: 'What would you like to do?',
             choices: [
-                'View Products Sales by Department', 'Create New Department',
+                'View Sales by Department', 'Create New Department',
                 new inquirer.Separator(), 'Exit Application'
             ]
         }
     ]).then(function(answers) {
         //determine which options was selected and go to correct function
         switch (answers.action) {
-            case 'View Products Sales by Department':
+            case 'View Sales by Department':
                 viewDeptStats();
                 break;
             case 'Create New Department':
@@ -165,8 +165,8 @@ function addDepartment(input) {
         console.log('Department Added!');
 
         //provides slight delay in execution so user can see response
-        setTimeout(clear, 2000);
-        setTimeout(showMenu, 2000);
+        setTimeout(clear, 5000);
+        setTimeout(showMenu, 5000);
     });
 }
 

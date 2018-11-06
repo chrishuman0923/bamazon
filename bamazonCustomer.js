@@ -136,7 +136,7 @@ function checkInventory(input) {
             console.log('\nInsufficient quantity in stock!');
 
             //provides slight delay in execution so user can see response
-            setTimeout(getMaxID, 2000);
+            setTimeout(getMaxID, 5000);
         } else {
             purchaseItem(id, quantity);
         }
@@ -184,7 +184,7 @@ function showTotalCost(id, quantity) {
             console.log('\nYour total cost was $ ' + totalCost + '.');
 
             //provides slight delay in execution so user can see response
-            setTimeout(getMaxID, 2000);
+            setTimeout(getMaxID, 5000);
         });
     });
 }

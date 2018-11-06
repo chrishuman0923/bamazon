@@ -190,7 +190,7 @@ function addInventory(input) {
         console.log('Inventory Added!');
 
         //provides slight delay in execution so user can see response
-        setTimeout(getMaxID, 2000);
+        setTimeout(getMaxID, 5000);
     });
 }
 
@@ -319,7 +319,7 @@ function addProduct(input) {
         console.log('Product Added!');
 
         //provides slight delay in execution so user can see response
-        setTimeout(getMaxID, 2000);
+        setTimeout(getMaxID, 5000);
     });
 }
 
