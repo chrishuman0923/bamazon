@@ -10,8 +10,7 @@ var keys = require('./keys'),
         user: 'root',
         password: keys.mySQL.password,
         database: 'bamazon'
-    }),
-    max_id = 0;
+    });
 
 //Connect to DB
 connection.connect(function(err) {
@@ -21,26 +20,10 @@ connection.connect(function(err) {
     }
     
     //connection successful
-    getMaxID();
+    //clear terminal and begin application
+    clear();
+    showMenu();
 });
-
-function getMaxID() {
-    var query = 'SELECT MAX(item_id) AS max_id FROM products;';
-
-    //query db
-    var syntax = connection.query(query, function(err, resp) {
-        if (err) {
-            closeApp('Error from query ' + syntax.sql + ' -> ' + err);
-        }
-
-        //set client-side variable of the max id in the database
-        max_id = resp[0].max_id;
-
-        //clear terminal and begin application
-        clear();
-        showMenu();
-    });
-}
 
 function showMenu() {
     inquirer.prompt([
@@ -59,7 +42,7 @@ function showMenu() {
                 viewDeptStats();
                 break;
             case 'Create New Department':
-                newDepartment();
+                getNewDept();
                 break;
             default:
                 clear();
@@ -73,8 +56,8 @@ function showMenu() {
 function viewDeptStats() {
     var query = [
             'SELECT departments.department_id, departments.department_name,',
-            'overhead_cost, SUM(product_sales) AS total_sales, SUM(product_sales) - overhead_cost',
-            'AS total_profit FROM products INNER JOIN departments ON', 'products.department_id = departments.department_id GROUP BY',
+            'overhead_cost, IFNULL(SUM(product_sales),0) AS total_sales, IFNULL(SUM(product_sales),0) - overhead_cost',
+            'AS total_profit FROM departments LEFT OUTER JOIN products ON', 'departments.department_id = products.department_id GROUP BY',
             'departments.department_id, departments.department_name,', 'departments.overhead_cost ORDER BY departments.department_id;'
         ].join(' ');
 
@@ -116,6 +99,72 @@ function viewDeptStats() {
 
         //back to menu
         showMenu();
+    });
+}
+
+function getNewDept() {
+    inquirer.prompt([
+        {
+            name: 'name',
+            type: 'input',
+            message: 'Department Name?'
+        },
+        {
+            name: 'overhead_cost',
+            type: 'input',
+            message: 'What is the dpeartment\'s overhead cost?',
+            validate: function(input) {
+                //Test for currency format
+                if (!/^[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{1,2})?$/gi.test(input)) {
+                    console.log('\nPlease enter a valid positive USD amount.');
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+    ]).then(function(answers) {
+        addDepartment(answers);
+    }).catch(function(err) {
+        closeApp('Error received: ' + err);
+    });
+}
+
+function addDepartment(input) {
+    //query was written this way to prevent auto_increment PK
+    //from increasing after failed insert
+    var query = [
+            'INSERT INTO departments (department_name, overhead_cost)',
+            'SELECT ?, ? WHERE NOT EXISTS ( SELECT * FROM departments',
+            'WHERE department_name=?);'
+        ].join(' '),
+        data = [
+            input.name.trim(),
+            parseFloat(input.overhead_cost),
+            input.name.trim()
+        ];
+    
+    var syntax = connection.query(query, data, function(err, resp) {
+        if (err) {
+            closeApp('Error from query ' + syntax.sql + ' -> ' + err.code);
+        }
+
+        if (resp.affectedRows === 0) {
+            console.log(
+                'Department not added to database.',
+                'Most likely due to a unique key violation caused by a ' +
+                'duplicate department name.'
+            );
+
+            //provides slight delay in execution so user can see response
+            setTimeout(clear, 5000);
+            return setTimeout(showMenu, 5000);
+        }
+        console.log('Department Added!');
+
+        //provides slight delay in execution so user can see response
+        setTimeout(clear, 2000);
+        setTimeout(showMenu, 2000);
     });
 }
 

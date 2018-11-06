@@ -195,9 +195,8 @@ function addInventory(input) {
 
 function getDepartments() {
     var query = [
-        'SELECT departments.department_id, department_name FROM products',
-        'INNER JOIN departments ON products.department_id =',
-        'departments.department_id GROUP BY departments.department_id,','department_name ORDER BY department_name;'
+        'SELECT departments.department_id, department_name FROM departments',
+        'ORDER BY department_name;'
     ].join(' ');
 
     //query db
