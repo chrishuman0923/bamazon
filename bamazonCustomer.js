@@ -181,7 +181,7 @@ function showTotalCost(id, quantity) {
             }).format(totalCost);
 
             //display total cost message
-            console.log('\nYour total cost was $ ' + totalCost + '.');
+            console.log('\nYour total cost was ' + totalCost + '.');
 
             //provides slight delay in execution so user can see response
             setTimeout(getMaxID, 5000);
