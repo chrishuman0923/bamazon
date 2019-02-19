@@ -30,6 +30,7 @@ node_modules/
 ######################
 *.log
 *.sql
+!schema.sql
 *.sqlite
 
 # OS generated files #
