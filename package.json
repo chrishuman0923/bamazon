@@ -4,14 +4,17 @@
   "description": "",
   "main": "bamazonCustomer.js",
   "scripts": {
+    "customer": "node bamazonCustomer.js",
+    "manager": "node bamazonManager.js",
+    "supervisor": "node bamazonSupervisor.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/chrishuman0923/bamazon.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Chris Human",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/chrishuman0923/bamazon/issues"
   },
@@ -22,5 +25,10 @@
     "dotenv": "^6.1.0",
     "inquirer": "^6.2.0",
     "mysql": "^2.16.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.14.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.16.0"
   }
 }
