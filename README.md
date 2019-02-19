@@ -8,7 +8,9 @@ The application is divided into three javascript files that interact with differ
 ## Getting Started
 
 1. `npm install`
-2. `npm run customer` | `npm run manager` | `npm run supervisor`
+2. Run schema file to create database
+3. Seed database with starter data
+4. `npm run customer` | `npm run manager` | `npm run supervisor`
 
 ## Technologies Used
 - JavaScript
